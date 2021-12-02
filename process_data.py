@@ -10,9 +10,9 @@ import seaborn as sb
 
 
 
-test_filename = 'data/liar_dataset/test.tsv'
-train_filename = 'data/liar_dataset/train.tsv'
-valid_filename = 'data/liar_dataset/valid.tsv'
+test_filename = 'data/liar_dataset/modified_dataset/test.csv'
+train_filename = 'data/liar_dataset/modified_dataset/train.csv'
+valid_filename = 'data/liar_dataset/modified_dataset/valid.csv'
 
 train_news = pd.read_csv(train_filename)
 test_news = pd.read_csv(test_filename)
@@ -34,7 +34,7 @@ def data_obs():
     print(valid_news.head(10))
 
 #check the data by calling below function
-#data_obs()
+data_obs()
 
 #distribution of classes for prediction
 def create_distribution(dataFile):
