@@ -1,4 +1,4 @@
-import DataPrep
+import process_data
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
@@ -6,12 +6,13 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 import nltk
 import nltk.corpus 
+nltk.download('treebank')
 
-
+glove_file_name = 'data/liar_dataset/modified_dataset/glove.6B.50d.txt'
 #we will start with simple bag of words technique 
 #creating feature vector - document term matrix
 countV = CountVectorizer()
-train_count = countV.fit_transform(DataPrep.train_news['Statement'].values)
+train_count = countV.fit_transform(process_data.train_news['Statement'].values)
 
 print(countV)
 print(train_count)
@@ -52,7 +53,7 @@ tfidf_ngram = TfidfVectorizer(stop_words='english',ngram_range=(1,4),use_idf=Tru
 tagged_sentences = nltk.corpus.treebank.tagged_sents()
 
 cutoff = int(.75 * len(tagged_sentences))
-training_sentences = DataPrep.train_news['Statement']
+training_sentences = process_data.train_news['Statement']
  
 print(training_sentences)
 
@@ -87,7 +88,7 @@ def untag(tagged_sentence):
 
 
 #Using Word2Vec 
-with open("glove.6B.50d.txt", "rb") as lines:
+with open(glove_file_name, "rb") as lines:
     w2v = {line.split()[0]: np.array(map(float, line.split()[1:]))
            for line in lines}
 
