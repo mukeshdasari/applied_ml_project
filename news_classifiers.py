@@ -110,6 +110,7 @@ def create_confusion_matrix(classifier):
     print(confusion))
     
 #K-fold cross validation for all classifiers
+print('---------------------Bag of Words---------------------')
 create_confusion_matrix(nb_pipeline)
 create_confusion_matrix(logR_pipeline)
 create_confusion_matrix(svm_pipeline)
@@ -179,6 +180,8 @@ np.mean(predicted_rf_ngram == process_data.test_news['Label'])
 
 
 #K-fold cross validation for all classifiers
+print('---------------------TFIDF and N-Grams---------------------')
+
 create_confusion_matrix(nb_pipeline_ngram)
 create_confusion_matrix(logR_pipeline_ngram)
 create_confusion_matrix(svm_pipeline_ngram)
@@ -254,7 +257,7 @@ random_forest_final = Pipeline([
 random_forest_final.fit(process_data.train_news['Statement'],process_data.train_news['Label'])
 predicted_rf_final = random_forest_final.predict(process_data.test_news['Statement'])
 np.mean(predicted_rf_final == process_data.test_news['Label'])
-print(metrics.classification_report(process_data.test_news['Label'], predicted_rf_final))
+print(classification_report(process_data.test_news['Label'], predicted_rf_final))
 
 logR_pipeline_final = Pipeline([
         #('LogRCV',countV_ngram),
@@ -266,7 +269,7 @@ logR_pipeline_final.fit(process_data.train_news['Statement'],process_data.train_
 predicted_LogR_final = logR_pipeline_final.predict(process_data.test_news['Statement'])
 np.mean(predicted_LogR_final == process_data.test_news['Label'])
 #accuracy = 0.62
-print(metrics.classification_report(process_data.test_news['Label'], predicted_LogR_final))
+print(classification_report(process_data.test_news['Label'], predicted_LogR_final))
 
 
 """
