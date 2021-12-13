@@ -20,36 +20,28 @@ valid_news = pd.read_csv(valid_filename)
 
 
 
-#data observation
-def data_obs():
+#data print
+def print_data():
     print("training dataset size:")
     print(train_news.shape)
     print(train_news.head(10))
 
-    #below dataset were used for testing and validation purposes
     print(test_news.shape)
     print(test_news.head(10))
     
     print(valid_news.shape)
     print(valid_news.head(10))
 
-#check the data by calling below function
-data_obs()
+print_data()
 
-#distribution of classes for prediction
+
 def create_distribution(dataFile):
-    
     return sb.countplot(x='Label', data=dataFile, palette='hls')
     
-
-#by calling below we can see that training, test and valid data seems to be failry evenly distributed between the classes
 create_distribution(train_news)
 create_distribution(test_news)
 create_distribution(valid_news)
 
-
-#data integrity check (missing label values)
-#none of the datasets contains missing values therefore no cleaning required
 def data_qualityCheck():
     
     print("Checking data qualitites...")
@@ -58,7 +50,6 @@ def data_qualityCheck():
         
     print("check finished.")
 
-    #below datasets were used to 
     test_news.isnull().sum()
     test_news.info()
 
@@ -72,7 +63,7 @@ def stem_tokens(tokens, stemmer):
         stemmed.append(stemmer.stem(token))
     return stemmed
 
-#process the data
+#processing the data
 def process_data(data,exclude_stopword=True,stem=True):
     tokens = [w.lower() for w in data]
     tokens_stemmed = tokens
@@ -98,7 +89,6 @@ def create_bigrams(words):
                 if i+k < Len:
                     lst.append(join_str.join([words[i],words[i+k]]))
     else:
-        #set it as unigram
         lst = create_unigram(words)
     return lst
 
