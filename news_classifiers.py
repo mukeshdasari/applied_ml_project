@@ -23,10 +23,6 @@ from sklearn.metrics import average_precision_score
 #string to test
 doc_new = ['Trump is running for president in 2016']
 
-#the feature selection has been done in select_feature.py module. here we will create models using those features for prediction
-
-#first we will use bag of words techniques
-
 #building classifier using naive bayes 
 nb_pipeline = Pipeline([
         ('NBCV',select_feature.countV),
@@ -88,7 +84,6 @@ def create_confusion_matrix(classifier):
     k_fold = KFold(n_splits=5)
     scores = []
     confusion = np.array([[0,0],[0,0]])
-
     for train_ind, test_ind in k_fold.split(process_data.train_news):
         train_text = process_data.train_news.iloc[train_ind]['Statement'] 
         train_y = process_data.train_news.iloc[train_ind]['Label']
@@ -109,7 +104,6 @@ def create_confusion_matrix(classifier):
     print('Confusion matrix:'),
     print(confusion))
     
-#K-fold cross validation for all classifiers
 print('---------------------Bag of Words---------------------')
 create_confusion_matrix(nb_pipeline)
 create_confusion_matrix(logR_pipeline)
@@ -119,11 +113,7 @@ create_confusion_matrix(random_forest)
 
 
 
-"""So far we have used bag of words technique to extract the features and passed those featuers into classifiers. We have also seen the
-f1 scores of these classifiers. now lets enhance these features using term frequency weights with various n-grams
-"""
-
-##Now using n-grams
+#using n-grams
 #naive-bayes classifier
 nb_pipeline_ngram = Pipeline([
         ('nb_tfidf',select_feature.tfidf_ngram),
@@ -159,7 +149,6 @@ np.mean(predicted_svm_ngram == process_data.test_news['Label'])
 #sgd classifier
 sgd_pipeline_ngram = Pipeline([
          ('sgd_tfidf',select_feature.tfidf_ngram),
-        #  ('sgd_clf',SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, n_iter=5))
          ('sgd_clf',SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3))
          ])
 
@@ -179,7 +168,6 @@ predicted_rf_ngram = random_forest_ngram.predict(process_data.test_news['Stateme
 np.mean(predicted_rf_ngram == process_data.test_news['Label'])
 
 
-#K-fold cross validation for all classifiers
 print('---------------------TFIDF and N-Grams---------------------')
 
 create_confusion_matrix(nb_pipeline_ngram)
@@ -196,13 +184,6 @@ print(classification_report(process_data.test_news['Label'], predicted_sgd_ngram
 print(classification_report(process_data.test_news['Label'], predicted_rf_ngram))
 
 process_data.test_news['Label'].shape
-
-"""
-Out of all the models fitted, we would take 2 best performing model. we would call them candidate models
-from the confusion matrix, we can see that random forest and logistic regression are best performing 
-in terms of precision and recall (take a look into false positive and true negative counts which appeares
-to be low compared to rest of the models)
-"""
 
 #grid-search parameter optimization
 #random forest classifier parameters
@@ -241,12 +222,10 @@ parameters = {'svm_tfidf__ngram_range': [(1, 1), (1, 2),(1,3),(1,4),(1,5)],
 gs_clf = GridSearchCV(svm_pipeline_ngram, parameters, n_jobs=-1)
 gs_clf = gs_clf.fit(process_data.train_news['Statement'][:10000],process_data.train_news['Label'][:10000])
 
+#finding the model with best performing parameters
 gs_clf.best_score_
 gs_clf.best_params_
 gs_clf.cv_results_
-
-#by running above commands we can find the model with best performing parameters
-
 
 #running both random forest and logistic regression models again with best parameter found with GridSearch method
 random_forest_final = Pipeline([
@@ -260,7 +239,6 @@ np.mean(predicted_rf_final == process_data.test_news['Label'])
 print(classification_report(process_data.test_news['Label'], predicted_rf_final))
 
 logR_pipeline_final = Pipeline([
-        #('LogRCV',countV_ngram),
         ('LogR_tfidf',TfidfVectorizer(stop_words='english',ngram_range=(1,5),use_idf=True,smooth_idf=False)),
         ('LogR_clf',LogisticRegression(penalty="l2",C=1))
         ])
@@ -268,104 +246,12 @@ logR_pipeline_final = Pipeline([
 logR_pipeline_final.fit(process_data.train_news['Statement'],process_data.train_news['Label'])
 predicted_LogR_final = logR_pipeline_final.predict(process_data.test_news['Statement'])
 np.mean(predicted_LogR_final == process_data.test_news['Label'])
-#accuracy = 0.62
 print(classification_report(process_data.test_news['Label'], predicted_LogR_final))
 
-
-"""
-by running both random forest and logistic regression with GridSearch's best parameter estimation, we found that for random 
-forest model with n-gram has better accuracty than with the parameter estimated. The logistic regression model with best parameter 
-has almost similar performance as n-gram model so logistic regression will be out choice of model for prediction.
-"""
 
 #saving best model to the disk
 model_file = 'final_model.sav'
 pickle.dump(logR_pipeline_ngram,open(model_file,'wb'))
-
-
-#Plotting learing curve
-def plot_learing_curve(pipeline,title):
-    size = 10000
-    cv = KFold(size, shuffle=True)
-    
-    X = process_data.train_news["Statement"]
-    y = process_data.train_news["Label"]
-    
-    pl = pipeline
-    pl.fit(X,y)
-    
-    train_sizes, train_scores, test_scores = learning_curve(pl, X, y, n_jobs=-1, cv=cv, train_sizes=np.linspace(.1, 1.0, 5), verbose=0)
-       
-    train_scores_mean = np.mean(train_scores, axis=1)
-    train_scores_std = np.std(train_scores, axis=1)
-    test_scores_mean = np.mean(test_scores, axis=1)
-    test_scores_std = np.std(test_scores, axis=1)
-     
-    plt.figure()
-    plt.title(title)
-    plt.legend(loc="best")
-    plt.xlabel("Training examples")
-    plt.ylabel("Score")
-    plt.gca().invert_yaxis()
-    
-    # box-like grid
-    plt.grid()
-    
-    # plot the std deviation as a transparent range at each training set size
-    plt.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha=0.1, color="r")
-    plt.fill_between(train_sizes, test_scores_mean - test_scores_std, test_scores_mean + test_scores_std, alpha=0.1, color="g")
-    
-    # plot the average training and test score lines at each training set size
-    plt.plot(train_sizes, train_scores_mean, 'o-', color="r", label="Training score")
-    plt.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
-    
-    # sizes the window for readability and displays the plot
-    # shows error from 0 to 1.1
-    plt.ylim(-.1,1.1)
-    plt.show()
-
-
-#below command will plot learing curves for each of the classifiers
-plot_learing_curve(logR_pipeline_ngram,"Naive-bayes Classifier")
-plot_learing_curve(nb_pipeline_ngram,"LogisticRegression Classifier")
-plot_learing_curve(svm_pipeline_ngram,"SVM Classifier")
-plot_learing_curve(sgd_pipeline_ngram,"SGD Classifier")
-plot_learing_curve(random_forest_ngram,"RandomForest Classifier")
-
-"""
-by plotting the learning cureve for logistic regression, it can be seen that cross-validation score is stagnating throughout and it 
-is unable to learn from data. Also we see that there are high errors that indicates model is simple and we may want to increase the
-model complexity.
-"""
-
-
-#plotting Precision-Recall curve
-def plot_prcurve(classifier):
-    
-    precision, recall, thresholds = precision_recall_curve(process_data.test_news['Label'], classifier)
-    average_precision = average_precision_score(process_data.test_news['Label'], classifier)
-    
-    plt.step(recall, precision, color='b', alpha=0.2,
-             where='post')
-    plt.fill_between(recall, precision, step='post', alpha=0.2,
-                     color='b')
-    
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.ylim([0.0, 1.05])
-    plt.xlim([0.0, 1.0])
-    plt.title('2-class Random Forest Precision-Recall curve: AP={0:0.2f}'.format(
-              average_precision))
-    
-plot_prcurve(predicted_LogR_ngram)
-plot_prcurve(predicted_rf_ngram)
-
-
-"""
-Now let's extract the most informative feature from ifidf vectorizer for all fo the classifiers and see of there are any common
-words that we can identify i.e. are these most informative feature acorss the classifiers are same? we will create a function that 
-will extract top 50 features.
-"""
 
 def find_most_informative_features(model, vect, clf, text=None, n=50):
     # Extract the vectorizer and the classifier from the pipeline
@@ -414,7 +300,6 @@ def find_most_informative_features(model, vect, clf, text=None, n=50):
                 cp, fnp, cn, fnn
             )
         )
-    #return "\n".join(output)
     print(output)
 
 find_most_informative_features(logR_pipeline_ngram,vect='LogR_tfidf',clf='LogR_clf')

@@ -9,7 +9,7 @@ import nltk.corpus
 nltk.download('treebank')
 
 glove_file_name = 'data/liar_dataset/modified_dataset/glove.6B.50d.txt'
-#we will start with simple bag of words technique 
+
 #creating feature vector - document term matrix
 countV = CountVectorizer()
 train_count = countV.fit_transform(process_data.train_news['Statement'].values)
@@ -17,21 +17,13 @@ train_count = countV.fit_transform(process_data.train_news['Statement'].values)
 print(countV)
 print(train_count)
 
-#print training doc term matrix
-#we have matrix of size of (10240, 12196) by calling below
 def get_countVectorizer_stats():
-    
-    #vocab size
     train_count.shape
-
-    #check vocabulary using below command
-    print(countV.vocabulary_)
-
-    #get feature names
-    print(countV.get_feature_names()[:25])
+    print(countV.vocabulary_) #vocabulary
+    print(countV.get_feature_names()[:25]) #feature names
 
 
-#create tf-df frequency features
+#create tf-df features
 #tf-idf 
 tfidfV = TfidfTransformer()
 train_tfidf = tfidfV.fit_transform(train_count)
@@ -40,11 +32,6 @@ def get_tfidf_stats():
     train_tfidf.shape
     #get train data feature names 
     print(train_tfidf.A[:10])
-
-
-#bag of words - with n-grams
-#countV_ngram = CountVectorizer(ngram_range=(1,3),stop_words='english')
-#tfidf_ngram  = TfidfTransformer(use_idf=True,smooth_idf=True)
 
 tfidf_ngram = TfidfVectorizer(stop_words='english',ngram_range=(1,4),use_idf=True,smooth_idf=True)
 
@@ -81,28 +68,18 @@ def features(sentence, index):
     }
     
     
-#helper function to strip tags from tagged corpus	
+#strip tags from tagged corpus	
 def untag(tagged_sentence):
     return [w for w, t in tagged_sentence]
 
-
-
-#Using Word2Vec 
+#Word2Vec 
 with open(glove_file_name, "rb") as lines:
     w2v = {line.split()[0]: np.array(map(float, line.split()[1:]))
            for line in lines}
 
-
-
-#model = gensim.models.Word2Vec(X, size=100) # x be tokenized text
-#w2v = dict(zip(model.wv.index2word, model.wv.syn0))
-
-
 class MeanEmbeddingVectorizer(object):
     def __init__(self, word2vec):
         self.word2vec = word2vec
-        # if a text is empty we should return a vector of zeros
-        # with the same dimensionality as all the other vectors
         self.dim = len(word2vec.itervalues().next())
 
     def fit(self, X, y):
